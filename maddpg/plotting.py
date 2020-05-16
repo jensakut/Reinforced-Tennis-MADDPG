@@ -1,6 +1,5 @@
 import time
 from collections import deque
-from random import random
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -70,8 +69,8 @@ class Plotting:
         axs[0].plot(np.arange(len(self.scores)), self.scores, label='score')
         axs[0].plot(np.arange(len(self.scores_mean)), self.scores_mean, label='100 mean score')
         axs[0].plot(self.score_ints_x, self.score_ints, '.', label='mean score int')
-        axs[0].plot(np.arange(len(self.lower)), self.lower, label='upper sigma-confidence')
-        axs[0].plot(np.arange(len(self.upper)), self.upper, label='lower sigma-confidence')
+        # axs[0].plot(np.arange(len(self.lower)), self.lower, label='upper sigma-confidence')
+        # axs[0].plot(np.arange(len(self.upper)), self.upper, label='lower sigma-confidence')
 
         axs[0].legend()
         axs[0].set_ylabel('Score')
@@ -113,6 +112,7 @@ class Plotting:
                           yaml_file)
 
 
+"""
 # main function
 if __name__ == "__main__":
     args = ParReacher()
@@ -126,3 +126,4 @@ if __name__ == "__main__":
     plotting.plotting(args=args)
     runtime = time.time() - start_time
     print('runtime is {:.2f}'.format(runtime))
+"""

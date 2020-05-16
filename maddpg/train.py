@@ -10,7 +10,7 @@ from maddpg.parameters import ParTennis
 from maddpg.plotting import Plotting
 
 
-def ddpg_unity(env, agent, brain_name, num_agents, plotting, par, n_episodes=200):
+def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
     """Train DDPG Agent
     Params
     ======
@@ -28,8 +28,8 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par, n_episodes=200
     scores_deque = deque(maxlen=100)
     scores = []
     best_score = -np.Inf
-    for i_episode in range(1, n_episodes + 1):
-        env_info = env.reset(train_mode=True)[brain_name]  # reset the environment
+    for i_episode in range(1, par.num_episodes + 1):
+        env_info = env.reset(train_mode=par.train)[brain_name]  # reset the environment
         states = env_info.vector_observations  # get the current state (for each agent)
         score = np.zeros(num_agents)  # initialize the score (for each agent)
         t_s = time.time()
@@ -80,7 +80,7 @@ def train_in_unity_env():
     brain = env.brains[brain_name]
 
     # reset the environment
-    env_info = env.reset(train_mode=False)[brain_name]
+    env_info = env.reset(train_mode=par.train)[brain_name]
 
     # number of agents
     num_agents = len(env_info.agents)
@@ -98,9 +98,9 @@ def train_in_unity_env():
     # optimize for two agents playing against each other tennis.
     # adaptions needed to distribute among more agents
     # state_size, state_size_full, action_size, par, num_agents, num_instances=1
-    agent = MADDPG(state_size, state_size * 2, action_size, par, num_agents)
+    agent = MADDPG(state_size, action_size, par, num_agents)
 
-    ddpg_unity(env, agent, brain_name, num_agents, plotting, par, n_episodes=200)
+    ddpg_unity(env, agent, brain_name, num_agents, plotting, par)
     env.close()
 
 
