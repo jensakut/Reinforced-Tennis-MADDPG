@@ -173,14 +173,14 @@ class MADDPG():
         actions_nexts = []
         for it1, agent in enumerate(self.ddpg_agents):
             next_obs_agent_view = next_obs[:, it1, :]
-            actions_nexts.append(agent.actor_target(next_obs_agent_view).detach().numpy())
+            actions_nexts.append(agent.actor_target(next_obs_agent_view).detach().cpu().numpy())
         actions_next_full = torch.from_numpy(np.hstack(actions_nexts)).float().to(device)
 
         # to train the actor prepare output for critic: compute the action of all agents using the current policy
         actions_preds = []
         for it2, agent in enumerate(self.ddpg_agents):
             obs_agent_view = obs[:, it2, :]
-            actions_preds.append(agent.actor_local(obs_agent_view).detach().numpy())
+            actions_preds.append(agent.actor_local(obs_agent_view).detach().cpu().numpy())
         actions_pred_full = torch.from_numpy(np.hstack(actions_preds)).float().to(device)
 
         # train each agent independently
