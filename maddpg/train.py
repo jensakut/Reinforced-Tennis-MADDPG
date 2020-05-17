@@ -6,7 +6,7 @@ import numpy as np
 from unityagents import UnityEnvironment
 
 from maddpg.maddpg_agent import MADDPG
-from maddpg.parameters import ParTennis
+from maddpg.parameters import Par
 from maddpg.plotting import Plotting
 
 
@@ -29,7 +29,10 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
     scores = []
     best_score = -np.Inf
     for i_episode in range(1, par.num_episodes + 1):
-        env_info = env.reset(train_mode=par.train)[brain_name]  # reset the environment
+        if i_episode % 500 < 5:
+            env_info = env.reset(train_mode=False)[brain_name]  # reset the environment
+        else:
+            env_info = env.reset(train_mode=True)[brain_name]  # reset the environment
         states = env_info.vector_observations  # get the current state (for each agent)
         score = np.zeros(num_agents)  # initialize the score (for each agent)
         t_s = time.time()
@@ -107,10 +110,9 @@ def train_in_unity_env():
 # main function
 if __name__ == "__main__":
     # Get parameters for ddpg from config object
-    # par = ParCrawler()
-    par = ParTennis()
+    par = Par()
 
-    env = UnityEnvironment(file_name=par.file_name, no_graphics=True)
+    env = UnityEnvironment(file_name=par.file_name, no_graphics=False)
 
     # load and train within the unity environment
     train_in_unity_env()

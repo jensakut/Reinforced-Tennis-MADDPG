@@ -14,31 +14,24 @@ class Par:
 
         # ou noise
         self.ou_mu = 0.
-        self.ou_theta = 0.15
-        self.ou_sigma = 0.25
-
+        self.ou_theta = 0.5
+        self.ou_sigma = 0.2
         # network architecture for actor and critic
-        self.actor_fc1_units = 400
-        self.actor_fc2_units = 300
-        self.critic_fcs1_units = 400
-        self.critic_fc2_units = 300
+        self.actor_fc1_units = 96
+        self.actor_fc2_units = 64
+        self.critic_fcs1_units = 96
+        self.critic_fc2_units = 64
 
         # Further parameter not found in paper
         self.random_seed = 15  # random seed
         self.update_every = 16  # time steps between updates
         self.num_updates = 1  # num of update passes when updating
         self.epsilon = 1.0  # epsilon for the noise process added to the actions
-        self.epsilon_decay = 1  # decay for epsilon above
-        self.num_episodes = 1000  # number of episodes
+        self.epsilon_decay = 0.9999  # 1e-6  # decay for epsilon above
+        self.num_episodes = 20000  # number of episodes
         self.file_name = 'Tennis_Linux/Tennis.x86_64'
         self.file_name_watch = self.file_name
         self.train = True
-
-
-class ParTennis(Par):
-    def __init__(self):
-        super(ParTennis, self).__init__()
-
         # tuned parameter to "reach" the goal
         # Learning
         self.batch_size = 512  # mini batch size
@@ -46,19 +39,12 @@ class ParTennis(Par):
         self.lr_critic = 1e-4  # learning rate of the critic
         self.tau = 1e-2
 
-        # ou noise
-        self.ou_theta = 0.5
-        self.ou_sigma = 0.2
-
-        # network architecture for actor and critic
-        self.actor_fc1_units = 96
-        self.actor_fc2_units = 64
-        self.critic_fcs1_units = 96
-        self.critic_fc2_units = 64
-
-        self.update_every = 16  # time steps between updates
-        # self.num_updates = 16  # num of update passes when updating
-
-        self.epsilon_decay = 0.9999  # 1e-6  # decay for epsilon above
-
-        self.num_episodes = 2500  # number of episodes
+        # Prioritized Experience Replay
+        self.use_prioritized_experience_replay = True
+        self.per_max_priority = 1.0
+        self.per_alpha = 0.4
+        self.per_alpha_end = 0.4
+        self.per_beta = 0.4
+        self.per_beta_end = 1.0
+        self.per_annihilation = 8000
+        self.per_eps = 1e-3

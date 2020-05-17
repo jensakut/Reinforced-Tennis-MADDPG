@@ -4,9 +4,10 @@ from collections import namedtuple, deque
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 import torch.optim as optim
+from torch import nn
 
+from maddpg.PrioritizedExperienceReplay import PrioritizedExperienceReplay
 from maddpg.maddpg_model import Actor, Critic
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -51,6 +52,10 @@ class DDPGAgent:
         self.critic_target = Critic(state_size_full, action_size_full, par).to(device)
         self.critic_optimizer = optim.Adam(self.critic_local.parameters(), lr=par.lr_critic,
                                            weight_decay=par.weight_decay)
+
+        self.mse_loss = nn.MSELoss()
+        self.mse_element_loss = nn.MSELoss()
+
         # print('critic')
         # print(self.critic_local)
         # initialize targets same as original networks
@@ -101,7 +106,7 @@ class MADDPG():
         self.num_instances = num_instances
 
         self.action_size = action_size
-        # self.seed = random.seed(par.random_seed)
+        self.seed = random.seed(par.random_seed)
 
         self.ddpg_agents = []
         for _ in range(num_agents):
@@ -110,10 +115,13 @@ class MADDPG():
 
         # self.time_learn = deque(maxlen=100)
         # self.time_act = deque(maxlen=100)
-        self.epsilon = 1
+        self.epsilon = par.epsilon
         self.par = par
-
-        self.memory = ReplayBuffer(par.buffer_size, par.batch_size)
+        # Replay memory
+        if par.use_prioritized_experience_replay:
+            self.memory = PrioritizedExperienceReplay(par)
+        else:
+            self.memory = ReplayBuffer(par.buffer_size, par.batch_size)
 
     def step(self, states, actions, rewards, next_states, dones, timestep):
         """
@@ -137,6 +145,9 @@ class MADDPG():
             # try a different noise-driven trajectory every episode
             self.reset()
             self.epsilon *= self.par.epsilon_decay
+
+        # if random.randint(0, 10) is 0:
+        #     self.reset()
 
     def act(self, states, add_noise=True):
         actions = []
@@ -166,7 +177,7 @@ class MADDPG():
 
         # sample some experiences and unpack
         experiences = self.memory.sample()
-        obs, obs_full, actions, actions_full, rewards, next_obs, next_obs_full, dones = experiences
+        sample_indices, is_weights, obs, obs_full, actions, actions_full, rewards, next_obs, next_obs_full, dones = experiences
 
         # Get predicted next-state actions and Q values from target models from the perspective of the agent
         # compute the action of each target actor for the critic
@@ -196,7 +207,17 @@ class MADDPG():
 
             # Compute critic loss
             Q_expected = ddpg_agent.critic_local(obs_full, actions_full)
-            critic_loss = F.mse_loss(Q_expected, Q_targets)
+            if self.par.use_prioritized_experience_replay:
+                # pseudocode 11, loss is td_error and pseudocode 12 priorities is abs td_error
+                priorities = abs(Q_targets - Q_expected)
+                # pseudocode 13
+                critic_loss = (is_weights * ddpg_agent.mse_element_loss(Q_expected, Q_targets)).mean()
+                # Update Priorities based on offseted TD error
+                self.memory.update_priorities(sample_indices, priorities.squeeze().to('cpu').data.numpy())
+            else:
+                # loss is the difference between currently estimated value and value provided by the tuples and the target
+                # network
+                critic_loss = ddpg_agent.mse_loss(Q_expected, Q_targets)
 
             # Minimize the loss
             ddpg_agent.critic_optimizer.zero_grad()
@@ -252,9 +273,8 @@ class ReplayBuffer:
         """
         self.memory = deque(maxlen=buffer_size)  # internal memory
         self.batch_size = batch_size
-        self.experience = namedtuple("Experience",
-                                     field_names=["obs", "obs_full", "actions", "actions_full", "rewards", "next_obs",
-                                                  "next_obs_full", "dones"])
+        self.experience = namedtuple("Experience", field_names=["obs", "obs_full", "actions", "actions_full", "rewards",
+                                                                "next_obs", "next_obs_full", "dones"])
 
     def add(self, obs, actions, rewards, next_obs, dones):
         """ Add a new experience to memory"""
