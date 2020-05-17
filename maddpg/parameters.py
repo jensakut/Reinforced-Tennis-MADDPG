@@ -43,7 +43,7 @@ class ParTennis(Par):
         # Learning
         self.batch_size = 512  # mini batch size
         self.lr_actor = 1e-4  # learning rate of the actor
-        self.lr_critic = 1e-3  # learning rate of the critic
+        self.lr_critic = 1e-4  # learning rate of the critic
         self.tau = 1e-3
 
         # ou noise
@@ -61,4 +61,4 @@ class ParTennis(Par):
 
         self.epsilon_decay = 0.9999  # 1e-6  # decay for epsilon above
 
-        self.num_episodes = 1500  # number of episodes
+        self.num_episodes = 2500  # number of episodes
