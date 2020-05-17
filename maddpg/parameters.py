@@ -44,16 +44,16 @@ class ParTennis(Par):
         self.batch_size = 512  # mini batch size
         self.lr_actor = 1e-4  # learning rate of the actor
         self.lr_critic = 1e-4  # learning rate of the critic
-        self.tau = 1e-3
+        self.tau = 1e-2
 
         # ou noise
         self.ou_theta = 0.5
         self.ou_sigma = 0.2
 
         # network architecture for actor and critic
-        self.actor_fc1_units = 64
+        self.actor_fc1_units = 96
         self.actor_fc2_units = 64
-        self.critic_fcs1_units = 64
+        self.critic_fcs1_units = 96
         self.critic_fc2_units = 64
 
         self.update_every = 16  # time steps between updates

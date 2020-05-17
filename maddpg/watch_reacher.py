@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from unityagents import UnityEnvironment
 
-from maddpg.ddpg_agent import MADDPG
+from maddpg.maddpg_agent import MADDPG
 # Get Reacher Environment
 from maddpg.parameters import ParReacher
 

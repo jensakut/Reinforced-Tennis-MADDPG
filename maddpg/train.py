@@ -5,7 +5,7 @@ from itertools import count
 import numpy as np
 from unityagents import UnityEnvironment
 
-from maddpg.ddpg_agent import MADDPG
+from maddpg.maddpg_agent import MADDPG
 from maddpg.parameters import ParTennis
 from maddpg.plotting import Plotting
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     # par = ParCrawler()
     par = ParTennis()
 
-    env = UnityEnvironment(file_name=par.file_name, no_graphics=False)
+    env = UnityEnvironment(file_name=par.file_name, no_graphics=True)
 
     # load and train within the unity environment
     train_in_unity_env()
