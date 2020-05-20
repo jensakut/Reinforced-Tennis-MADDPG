@@ -31,6 +31,11 @@ class DDPGAgent():
         # Noise process
         self.noise = OUNoise(action_size, par.random_seed, par.ou_mu, par.ou_theta, par.ou_sigma)
 
+    def save_model(self, experiment_name, i_episode):
+        path = self.par.save_path
+        torch.save(self.actor_local.state_dict(), experiment_name + '_checkpoint_actor_' + str(i_episode) + '.pth')
+        torch.save(self.critic_local.state_dict(), experiment_name + '_checkpoint_critic_' + str(i_episode) + '.pth')
+
 
 class Agent():
     """Interacts with and learns from the environment."""
@@ -190,6 +195,9 @@ class Agent():
         for target_param, param in zip(target.parameters(), source.parameters()):
             target_param.data.copy_(param.data)
 
+    def save_model(self, experiment_name, i_episode):
+        for agent in self.ddpg_agents:
+            agent.save_model(experiment_name, i_episode)
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""

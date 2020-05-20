@@ -4,8 +4,8 @@ from collections import namedtuple, deque
 
 import numpy as np
 import torch
+import torch.nn as nn
 import torch.optim as optim
-from torch import nn
 
 from maddpg.PrioritizedExperienceReplay import PrioritizedExperienceReplay
 from maddpg.maddpg_model import Actor, Critic
@@ -64,7 +64,7 @@ class DDPGAgent:
         hard_update(self.critic_local, self.critic_target)
 
         # Noise process
-        self.noise = OUNoise(action_size, par.ou_mu, par.ou_theta, par.ou_sigma)
+        self.noise = OUNoise(action_size, par.ou_mu, par.ou_theta, par.ou_sigma, par.random_seed)
         self.par = par
 
     def act(self, state, epsilon, add_noise=True):
@@ -85,6 +85,10 @@ class DDPGAgent:
         np.clip(action, -1, 1)
         # unpack action which has an unneccessary []
         return action[0]
+
+    def save_model(self, experiment_name, i_episode):
+        torch.save(self.actor_local.state_dict(), experiment_name + '_checkpoint_actor_' + str(i_episode) + '.pth')
+        torch.save(self.critic_local.state_dict(), experiment_name + '_checkpoint_critic_' + str(i_episode) + '.pth')
 
 
 class MADDPG():
@@ -138,7 +142,7 @@ class MADDPG():
         self.memory.add(states, np.asarray(actions), np.asarray(rewards), next_states, np.asarray(dones))
 
         # Learn, if enough samples are available in memory
-        if len(self.memory) > self.par.batch_size and timestep % self.par.update_every == 0:
+        if len(self.memory) > self.par.batch_size * 4 and timestep % self.par.update_every == 0:
             self.learn()
 
         if np.any(dones):
@@ -177,7 +181,13 @@ class MADDPG():
 
         # sample some experiences and unpack
         experiences = self.memory.sample()
-        sample_indices, is_weights, obs, obs_full, actions, actions_full, rewards, next_obs, next_obs_full, dones = experiences
+        if self.par.use_prioritized_experience_replay:
+            sample_indices, is_weights, obs, obs_full, actions, actions_full, rewards, next_obs, next_obs_full, dones = experiences
+        else:
+            obs, obs_full, actions, actions_full, rewards, next_obs, next_obs_full, dones = experiences
+
+        # get empty list of priorities to average later on
+        priorities = []
 
         # Get predicted next-state actions and Q values from target models from the perspective of the agent
         # compute the action of each target actor for the critic
@@ -204,16 +214,14 @@ class MADDPG():
 
             Q_targets = rewards[:, it].reshape(-1, 1) + (self.par.gamma * Q_targets_next *
                                                          (1 - dones[:, it].reshape(-1, 1)))
-
             # Compute critic loss
             Q_expected = ddpg_agent.critic_local(obs_full, actions_full)
             if self.par.use_prioritized_experience_replay:
                 # pseudocode 11, loss is td_error and pseudocode 12 priorities is abs td_error
-                priorities = abs(Q_targets - Q_expected)
+                priorities.append(abs(Q_targets - Q_expected))
                 # pseudocode 13
                 critic_loss = (is_weights * ddpg_agent.mse_element_loss(Q_expected, Q_targets)).mean()
                 # Update Priorities based on offseted TD error
-                self.memory.update_priorities(sample_indices, priorities.squeeze().to('cpu').data.numpy())
             else:
                 # loss is the difference between currently estimated value and value provided by the tuples and the target
                 # network
@@ -239,16 +247,29 @@ class MADDPG():
             soft_update(ddpg_agent.critic_local, ddpg_agent.critic_target, self.par.tau)
             soft_update(ddpg_agent.actor_local, ddpg_agent.actor_target, self.par.tau)
 
+        if self.par.use_prioritized_experience_replay:
+            priorities_numpy = []
+            for priority in priorities:
+                priorities_numpy.append(priority.squeeze().to('cpu').data.numpy())
+
+            priorities_mean = np.mean(priorities_numpy, axis=0)
+            self.memory.update_priorities(sample_indices, priorities_mean)
+
+    def save_model(self, experiment_name, i_episode):
+        for agent in self.ddpg_agents:
+            agent.save_model(experiment_name, i_episode)
+
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, mu=0., theta=0.05, sigma=0.2):
+    def __init__(self, size, mu=0., theta=0.05, sigma=0.2, seed=48, ):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
         self.sigma = sigma
         self.reset()
+        self.seed = random.seed(seed)
 
     def reset(self):
         """Reset the internal state (= noise) to mean (mu)."""

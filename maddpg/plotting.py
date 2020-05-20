@@ -7,7 +7,7 @@ import yaml
 
 
 class Plotting:
-    def __init__(self):
+    def __init__(self, par):
         self.scores = []
         self.scores_window = deque(maxlen=100)
         self.scores_per_agent = []
@@ -29,7 +29,7 @@ class Plotting:
 
         self.scores_mean_max = -np.inf
         self.scores_mean_max_idx = 0
-        self.fname = "{}".format(time.time())
+        self.fname = par.save_path + "{}".format(time.time())
 
     def add_measurement(self, score_per_agent, eps):
         score = np.mean(score_per_agent)
@@ -104,7 +104,14 @@ class Plotting:
             {'num_updates': args.num_updates},
             {'epsilon': args.epsilon},
             {'epsilon_decay': args.epsilon_decay},
-            {'num_episodes': args.num_episodes}]
+            {'num_episodes': args.num_episodes},
+            {'use_prioritized_experience_replay': args.use_prioritized_experience_replay},
+            {'per_max_priority': args.per_max_priority},
+            {'per_alpha': args.per_alpha},
+            {'per_alpha_end': args.per_alpha_end},
+            {'per_beta': args.per_beta},
+            {'per_beta_end': args.per_beta_end},
+            {'per_eps': args.per_eps}]
 
         yaml_name = self.fname + '.yaml'
         with open(yaml_name, 'w+') as yaml_file:

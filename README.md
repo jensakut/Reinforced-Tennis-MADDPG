@@ -1,6 +1,6 @@
 #### Udacity Deep Reinforcement Learning Nanodegree 
 ## Project 2: Competitive Environments
-# Reinforced Tennis Playing with MADDPG 
+# A Reinforced Tennis Match with DDPG and MADDPG Agents 
 ### Introduction
 
 
@@ -61,19 +61,126 @@ and difficult.
 
 3. Train the agent or watch a smart agent with the following scripts
     ```bash
-    python maddpg/train.py
-    python maddpg/watch_reacher.py
+    python ddpg/train.py
+    python ddpg/watch.py
     ```
-
+   or 
+    ```bash
+    python maddpg/train.py
+    python maddpg/watch.py
+    ```
 
 
 ## Results: 
 
-Not Available yet. Currently, something is happening: 
+With two DDPG agents consisting of seperately trained actor-critic agents. They learn of the same experience replay 
+The currently used parameter set can be found in parameters.py of the ddpg directory. 
+These parameters are as follows: 
 
-The currently used parameter set can be found in parameters.py 
+- max_score: 0.8442000127956271
+- at_iteration: 1299
+- buffer_size: 1000000
+- batch_size: 256
+- gamma: 0.9
+- tau: 0.001
+- lr_actor: 0.001
+- lr_critic: 0.001
+- weight_decay: 0
+- ou_mu: 0.0
+- ou_theta: 0.15
+- ou_sigma: 0.01
+- actor_fc1_units: 32
+- actor_fc2_units: 16
+- critic_fcs1_units: 32
+- critic_fc2_units: 16
+- random_seed: 15
+- update_every: 1
+- epsilon: 1.0
+- epsilon_decay: 1
+- num_episodes: 5000
 
-![Alt text](results/current_results.png?raw=true "Title")
+The Actor looks as follows:
+
+        input = 24 states
+        32 Fully Connected Neurons with Batch Normalization and Relu Activation
+        16 Fully Connected Neurons with Batch Normalization and Relu Activation
+        2 Fully Connected Neurons with Batch Normalization and tanh Activation
+      
+The Critic looks as follows: 
+
+        input = 24 states
+        32 Fully Connected Neurons with Batch Normalization and Relu Activation
+        16 Fully Connected Neurons with Batch Normalization and Relu Activation + 2 Action Values of the Actor 
+        1 Fully Connected Neuron with Batch Normalization and no Activation
+      
+These parameters are empirically optimized. It is noteworthy, that such a small neural network can learn this complex 
+tennis gameplay. The resulting network weights are derived from episode 1300. 
+
+![Alt text](results/ddpg/1589925396.1851904.png?raw=true "Title")
+
+## Future Ideas: 
+
+As this environment is a mix of competition and collaboration, yet not a zero-sum game, it is ideal for MADDPG. 
+But this algorithm does not yield the desired results due to the complex parameter optimization. 
+It is implemented with prioritized experience replay, but so far no suitable parameters are found. 
+A bug may also be the cause of the poor results depicted below. 
+
+While the network architecture is the same as the above described, the parameters are as follows: 
+
+        # Learning Parameters
+        self.buffer_size = int(1e6)  # replay buffer size
+        self.batch_size = 64  # minibatch size
+        self.gamma = 0.99  # discount factor
+        self.tau = 0.001  # for soft update of target parameters
+        self.lr_actor = 1e-4  # learning rate of the actor
+        self.lr_critic = 1e-3  # learning rate of the critic
+        self.weight_decay = 1e-2  # L2 weight decay
+
+        # ou noise
+        self.ou_mu = 0.
+        self.ou_theta = 0.5
+        self.ou_sigma = 0.2
+        
+        # network architecture for actor and critic
+        self.actor_fc1_units = 96
+        self.actor_fc2_units = 64
+        self.critic_fcs1_units = 96
+        self.critic_fc2_units = 64
+
+        # Further parameter not found in paper
+        self.random_seed = 15  # random seed
+        self.update_every = 16  # time steps between updates
+        self.num_updates = 1  # num of update passes when updating
+        self.epsilon = 1.0  # epsilon for the noise process added to the actions
+        self.epsilon_decay = 0.9999  # 1e-6  # decay for epsilon above
+        self.num_episodes = 20000  # number of episodes
+        self.file_name = 'Tennis_Linux/Tennis.x86_64'
+        self.file_name_watch = self.file_name
+        self.train = True
+        # tuned parameter to "reach" the goal
+        # Learning
+        self.batch_size = 512  # mini batch size
+        self.lr_actor = 1e-4  # learning rate of the actor
+        self.lr_critic = 1e-4  # learning rate of the critic
+        self.tau = 1e-2
+
+        # Prioritized Experience Replay
+        self.use_prioritized_experience_replay = True
+        self.per_max_priority = 1.0
+        self.per_alpha = 0.4
+        self.per_alpha_end = 0.4
+        self.per_beta = 0.4
+        self.per_beta_end = 1.0
+        self.per_annihilation = 8000
+        self.per_eps = 1e-3
+
+
+The results are not solving the environment and need further tuning. 
+
+![Alt text](results/maddpg/1589672949.192302.png?raw=true "Title")
+
+To tune the parameters automatically, the policy-based algorithm family of hillclimbing methods can be used. 
+
 
 # Background
 ## Policy-based methods 

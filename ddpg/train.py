@@ -23,6 +23,7 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
     """
     # for naming the weights
     experiment_name = plotting.fname
+    agent.save_model(experiment_name, 0)
 
     not_solved = True
     scores_deque = deque(maxlen=100)
@@ -52,26 +53,22 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
         print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, Min Score: {:.2f}, Max Score: {:.2f}, '
               'episode_dur {:.2f}'.format(i_episode, np.mean(scores_deque), np.mean(score), np.min(score),
                                           np.max(score), ctime), end="")
-        if i_episode % 5 == 0:
-            save_network_weights(agent, experiment_name, i_episode)
+        if i_episode % 25 == 0:
             plotting.plotting(par)
             print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, Min Score: {:.2f}, Max Score: {:.2f}, '
-                  'episode_dur {:.2f}'.format(
-                i_episode, np.mean(scores_deque), np.mean(score), np.min(score), np.max(score), ctime))
-        if np.mean(scores_deque) >= 30.0 and not_solved:
+                  'episode_dur {:.2f}'.format(i_episode, np.mean(scores_deque), np.mean(score), np.min(score),
+                                              np.max(score), ctime))
+            if not_solved is False:
+                agent.save_model(experiment_name, i_episode)
+        if np.mean(scores_deque) >= 0.5 and not_solved:
             print("environment solved in {}".format(i_episode))
+            agent.save_model(experiment_name, par.num_episodes)
             not_solved = False
 
     # save at last
     plotting.plotting(par)
-    save_network_weights(agent, experiment_name, par.num_episodes)
+    agent.save_model(experiment_name, par.num_episodes)
     return scores
-
-
-def save_network_weights(agent, experiment_name, i_episode):
-    pass
-    # torch.save(agent.actor_local.state_dict(), experiment_name + '_checkpoint_actor_' + str(i_episode) + '.pth')
-    # torch.save(agent.critic_local.state_dict(), experiment_name + '_checkpoint_critic_' + str(i_episode) + '.pth')
 
 
 def train_in_unity_env():

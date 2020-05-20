@@ -28,6 +28,8 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
     scores_deque = deque(maxlen=100)
     scores = []
     best_score = -np.Inf
+    agent.reset()
+
     for i_episode in range(1, par.num_episodes + 1):
         if i_episode % 500 < 5:
             env_info = env.reset(train_mode=False)[brain_name]  # reset the environment
@@ -56,7 +58,7 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
               'episode_dur {:.2f}'.format(i_episode, np.mean(scores_deque), np.mean(score), np.min(score),
                                           np.max(score), ctime), end="")
         if i_episode % 100 == 0:
-            save_network_weights(agent, experiment_name, i_episode)
+            agent.save_model(experiment_name, i_episode)
             plotting.plotting(par)
             print('\rEpisode {}\tAverage Score: {:.2f}\tScore: {:.2f}, Min Score: {:.2f}, Max Score: {:.2f}, '
                   'episode_dur {:.2f}'.format(
@@ -67,14 +69,11 @@ def ddpg_unity(env, agent, brain_name, num_agents, plotting, par):
 
     # save at last
     plotting.plotting(par)
-    save_network_weights(agent, experiment_name, par.num_episodes)
+    agent.save_model(experiment_name, par.num_episodes)
     return scores
 
 
-def save_network_weights(agent, experiment_name, i_episode):
-    pass
-    # torch.save(agent.actor_local.state_dict(), experiment_name + '_checkpoint_actor_' + str(i_episode) + '.pth')
-    # torch.save(agent.critic_local.state_dict(), experiment_name + '_checkpoint_critic_' + str(i_episode) + '.pth')
+
 
 
 def train_in_unity_env():
@@ -96,7 +95,7 @@ def train_in_unity_env():
     print('There are {} agents. Each observes a state with length: {} and has {} actions.'.format(states.shape[0],
                                                                                                   state_size,
                                                                                                   action_size))
-    plotting = Plotting()
+    plotting = Plotting(par)
 
     # optimize for two agents playing against each other tennis.
     # adaptions needed to distribute among more agents

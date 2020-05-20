@@ -27,8 +27,9 @@ class Par:
         self.random_seed = 15  # random seed
         self.update_every = 1  # timesteps between updates
         self.epsilon = 1.0  # epsilon for the noise process added to the actions
-        self.num_episodes = 1500  # number of episodes
+        self.epsilon_decay = 1  # 1e-6  # decay for epsilon above
+
+        self.num_episodes = 5000  # number of episodes
         self.file_name = 'Tennis_Linux/Tennis.x86_64'
         self.file_name_watch = 'Tennis_Linux/Tennis.x86_64'
-
-        self.epsilon_decay = 1  # 1e-6  # decay for epsilon above
+        self.save_path = '../results/ddpg/'

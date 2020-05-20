@@ -16,3 +16,4 @@ scipy
 ipykernel
 unityagents==0.4.0
 commentjson
+torchsummary

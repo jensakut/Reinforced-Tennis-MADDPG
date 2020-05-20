@@ -69,12 +69,12 @@ class Plotting:
         id = 666
         fig, axs = plt.subplots(2, 1, constrained_layout=True, num=id, dpi=500)
         # score for each agent
-        axs[0].plot(np.arange(len(self.scores)), self.scores_per_agent, linestyle='-.', linewidth=0.3)
-        axs[0].plot(np.arange(len(self.scores)), self.scores, label='score')
+        axs[0].plot(np.arange(len(self.scores)), self.scores_per_agent, linestyle=':', linewidth=0.3)
+        axs[0].plot(np.arange(len(self.scores)), self.scores, label='score', linewidth=0.3)
         axs[0].plot(np.arange(len(self.scores_mean)), self.scores_mean, label='100 mean score')
-        axs[0].plot(self.score_ints_x, self.score_ints, '.', label='mean score int')
-        axs[0].plot(np.arange(len(self.lower)), self.lower, label='upper sigma-confidence')
-        axs[0].plot(np.arange(len(self.upper)), self.upper, label='lower sigma-confidence')
+        # axs[0].plot(self.score_ints_x, self.score_ints, '.', label='mean score int', linewidth=0.3)
+        # axs[0].plot(np.arange(len(self.lower)), self.lower, label='upper sigma-confidence')
+        # axs[0].plot(np.arange(len(self.upper)), self.upper, label='lower sigma-confidence')
 
         axs[0].legend()
         axs[0].set_ylabel('Score')
