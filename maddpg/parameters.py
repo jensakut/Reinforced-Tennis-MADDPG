@@ -29,7 +29,7 @@ class Par:
         self.num_updates = 1  # num of update passes when updating
         self.epsilon = 1.0  # epsilon for the noise process added to the actions
         self.epsilon_decay = 0.9999  # 1e-6  # decay for epsilon above
-        self.num_episodes = 5000  # number of episodes
+        self.num_episodes = 10000  # number of episodes
         self.file_name = 'Tennis_Linux/Tennis.x86_64'
         self.file_name_watch = self.file_name
         self.save_path = ''
@@ -37,12 +37,11 @@ class Par:
         self.train = True
 
         # Prioritized Experience Replay
-        self.use_prioritized_experience_replay = False
+        self.use_prioritized_experience_replay = True
         self.per_max_priority = 1.0
         self.per_alpha = 0.4
         self.per_alpha_end = 0.4
         self.per_beta = 0.4
         self.per_beta_end = 1.0
-        self.per_annihilation = 8000
+        self.per_annihilation = 1000
         self.per_eps = 1e-3
-
